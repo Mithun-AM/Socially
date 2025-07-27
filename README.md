@@ -1,6 +1,6 @@
 <h1 align="center">Socially</h1>
 
-Socially is a modern social media web application built with **Next.js**, **React**, **Clerk for authentication**, and **Prisma**.  
+Socially is a social media web application built with **Next.js**, **Clerk for authentication**, and **Prisma**.  
 Users can create posts, like/unlike posts, follow/unfollow other users, and customize their profiles.
 
 ---
@@ -41,3 +41,4 @@ Users can create posts, like/unlike posts, follow/unfollow other users, and cust
 - DATABASE_URL=your_postgres_database_url
 - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_key
 - CLERK_SECRET_KEY=your_clerk_secret_key
+- UPLOADTHING_TOKEN=
