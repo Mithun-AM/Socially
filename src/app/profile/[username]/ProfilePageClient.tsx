@@ -14,27 +14,40 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { SignInButton, useUser } from '@clerk/nextjs';
 import { format } from 'date-fns';
-import { CalendarIcon, EditIcon, FileTextIcon, HeartIcon, LinkIcon, MapPinIcon } from 'lucide-react';
+import { CalendarIcon, EditIcon, FileTextIcon, HeartIcon, LinkIcon, MapPinIcon, UserCheckIcon, UsersIcon } from 'lucide-react';
 import React, { useState } from 'react'
 import toast from 'react-hot-toast';
+import { useRouter } from "next/navigation";
+import Link from 'next/link';
+
 
 type User = Awaited<ReturnType<typeof getProfileByUsername>>
 type Posts = Awaited<ReturnType<typeof getUserPosts>>
 
-interface ProfilePageClientProps{
-    user: NonNullable<User>
-    posts: Posts
-    likedPosts: Posts
-    isFollowing: boolean
+type LiteUser = {
+  id: string;
+  name: string | null;
+  username: string;
+  image: string | null;
+  bio: string | null;
+};
+
+interface ProfilePageClientProps {
+  user: NonNullable<User>
+  posts: Posts
+  likedPosts: Posts
+  isFollowing: boolean
+  followers: LiteUser[]
+  following: LiteUser[]
 }
 
-function ProfilePageClient({isFollowing: initialIsFollowing,likedPosts,posts,user,}:ProfilePageClientProps) {
-  
+function ProfilePageClient({ isFollowing: initialIsFollowing, likedPosts, posts, user, followers, following }: ProfilePageClientProps) {
+  const router = useRouter();
   const { user: currentUser } = useUser();
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [isUpdatingFollow, setIsUpdatingFollow] = useState(false);
-  
+
   const [editForm, setEditForm] = useState({
     name: user.name || "",
     bio: user.bio || "",
@@ -74,6 +87,25 @@ function ProfilePageClient({isFollowing: initialIsFollowing,likedPosts,posts,use
     currentUser?.emailAddresses[0].emailAddress.split("@")[0] === user.username;
 
   const formattedDate = format(new Date(user.createdAt), "MMMM yyyy");
+
+  const UserRow = ({ u }: { u: LiteUser }) => {
+    return (
+      <div className="flex items-center p-3 border rounded-md">
+        <Link href={`/profile/${u.username}`}>
+          <Avatar className="w-10 h-10">
+            <AvatarImage src={u.image ?? "/avatar.png"} />
+          </Avatar>
+        </Link>
+        <div className="ml-3">
+          <Link href={`/profile/${u.username}`}>
+            <span className="font-medium">{u.name ?? u.username}</span>
+          </Link>
+          <span className="block text-sm text-muted-foreground">@{u.username}</span>
+        </div>
+      </div>
+    );
+  };
+
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -167,22 +199,38 @@ function ProfilePageClient({isFollowing: initialIsFollowing,likedPosts,posts,use
           <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
             <TabsTrigger
               value="posts"
-              className="flex items-center gap-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary
-               data-[state=active]:bg-transparent px-6 font-semibold"
+              className="flex items-center gap-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 font-semibold"
             >
               <FileTextIcon className="size-4" />
               Posts
             </TabsTrigger>
+
             <TabsTrigger
               value="likes"
-              className="flex items-center gap-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary
-               data-[state=active]:bg-transparent px-6 font-semibold"
+              className="flex items-center gap-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 font-semibold"
             >
               <HeartIcon className="size-4" />
               Likes
             </TabsTrigger>
+
+            <TabsTrigger
+              value="followers"
+              className="flex items-center gap-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 font-semibold"
+            >
+              <UsersIcon className="size-4" />
+              Followers ({followers.length})
+            </TabsTrigger>
+
+            <TabsTrigger
+              value="following"
+              className="flex items-center gap-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 font-semibold"
+            >
+              <UserCheckIcon className="size-4" />
+              Following ({following.length})
+            </TabsTrigger>
           </TabsList>
 
+          {/* Posts */}
           <TabsContent value="posts" className="mt-6">
             <div className="space-y-6">
               {posts.length > 0 ? (
@@ -193,6 +241,7 @@ function ProfilePageClient({isFollowing: initialIsFollowing,likedPosts,posts,use
             </div>
           </TabsContent>
 
+          {/* Likes */}
           <TabsContent value="likes" className="mt-6">
             <div className="space-y-6">
               {likedPosts.length > 0 ? (
@@ -201,6 +250,24 @@ function ProfilePageClient({isFollowing: initialIsFollowing,likedPosts,posts,use
                 <div className="text-center py-8 text-muted-foreground">No liked posts to show</div>
               )}
             </div>
+          </TabsContent>
+
+          {/* Followers */}
+          <TabsContent value="followers" className="mt-6 space-y-3">
+            {followers.length ? (
+              followers.map((u) => <UserRow key={u.id} u={u} />)
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">No followers yet</div>
+            )}
+          </TabsContent>
+
+          {/* Following */}
+          <TabsContent value="following" className="mt-6 space-y-3">
+            {following.length ? (
+              following.map((u) => <UserRow key={u.id} u={u} />)
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">Not following anyone yet</div>
+            )}
           </TabsContent>
         </Tabs>
 

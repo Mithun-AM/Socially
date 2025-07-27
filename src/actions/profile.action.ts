@@ -195,3 +195,48 @@ export async function isFollowing(userId: string) { // To check if we following 
     return false;
   }
 }
+
+export async function getFollowersAndFollowing(username: string) {
+  const user = await prisma.user.findUnique({
+    where: { username },
+    select: {
+      id: true,
+      // Followers = rows where THIS user is "following" (others follow me)
+      followers: {
+        include: {
+          follower: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              image: true,
+              bio: true,
+            },
+          },
+        },
+      },
+      // Following = rows where THIS user is the "follower" (I follow others)
+      following: {
+        include: {
+          following: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              image: true,
+              bio: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!user) return { followers: [], following: [] };
+
+  // flatten to plain user arrays
+  const followers = user.followers.map(f => f.follower);
+  const following = user.following.map(f => f.following);
+
+  return { followers, following };
+}
