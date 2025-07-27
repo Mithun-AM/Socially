@@ -38,7 +38,7 @@ Users can create posts, like/unlike posts, follow/unfollow other users, and cust
 ---
 
 ### .env
-- DATABASE_URL=your_postgres_database_url
-- NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_key
-- CLERK_SECRET_KEY=your_clerk_secret_key
+- DATABASE_URL=
+- NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY==
+- CLERK_SECRET_KEY=
 - UPLOADTHING_TOKEN=
